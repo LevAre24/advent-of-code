@@ -2,19 +2,22 @@ import run from "aocrunner";
 
 const parseInput = (rawInput: string) => rawInput;
 
-const validateArray = (arr: number[]): number => {
+const isSafe = (arr: number[]): boolean => {
   let increase = true;
   let decrease = true;
-  let unsafeCount = 0;
 
   if(arr.length < 2)
   {
-    return unsafeCount;
+    return true;
   }
 
   for(let i = 0; i < arr.length; i++)
   {
     const diff = arr[i] - arr[i-1];
+    if(Math.abs(diff) < 1 || Math.abs(diff) > 3)
+    {
+      return false;
+    }
 
     if (diff > 0) {
       decrease = false;
@@ -23,25 +26,27 @@ const validateArray = (arr: number[]): number => {
       increase = false;
     }
 
-    if(Math.abs(diff) < 1 || Math.abs(diff) > 3)
+  }
+  return increase || decrease;
+}
+
+const isSafeDamper = (arr: number[]): boolean => {
+  if (isSafe(arr))
+  {
+    return true;
+  }
+
+  for( let i = 0; i < arr.length; i++ )
+  {
+    const modArr = arr.slice(0, i).concat(arr.slice(i+1));
+
+    if(isSafe(modArr))
     {
-      unsafeCount += 1;
+      return true;
     }
   }
 
-  if (!increase && !decrease)
-  {
-    unsafeCount += 1;
-  }
-
-  if(unsafeCount > 1)
-  {
-    console.log("arr", arr);
-  }
-
-  // console.log("unsafeCount", unsafeCount);
-
-  return unsafeCount;
+  return false;
 }
 
 const part1 = (rawInput: string) => {
@@ -51,12 +56,10 @@ const part1 = (rawInput: string) => {
   input.trim().split("\n").forEach(line => {
     const arr = line.trim().split(/\s+/).map(Number);
 
-    const unsafeCount = validateArray(arr)
-
-    safeCount += unsafeCount === 0 ? 1 : 0;
+    safeCount += isSafe(arr) ? 1 : 0;
   });
 
-  return safeCount; //472
+  return safeCount;
 };
 
 const part2 = (rawInput: string) => {
@@ -66,12 +69,10 @@ const part2 = (rawInput: string) => {
   input.trim().split("\n").forEach(line => {
     const arr = line.trim().split(/\s+/).map(Number);
 
-    const unsafeCount = validateArray(arr)
-
-    safeCount += unsafeCount <= 1 ? 1 : 0;
+    safeCount += isSafeDamper(arr) ? 1 : 0;
   });
 
-  return safeCount; // 542 is too high
+  return safeCount;
 };
 
 run({
@@ -86,10 +87,15 @@ run({
   },
   part2: {
     tests: [
-      // {
-      //   input: ``,
-      //   expected: "",
-      // },
+      {
+        input: `7 6 4 2 1
+        1 2 7 8 9
+        9 7 6 2 1
+        1 3 2 4 5
+        8 6 4 4 1
+        1 3 6 7 9`,
+        expected: 4,
+      },
     ],
     solution: part2,
   },
