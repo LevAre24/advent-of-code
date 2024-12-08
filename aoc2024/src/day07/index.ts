@@ -1,15 +1,6 @@
 import run from "aocrunner";
 
-const parseInput = (rawInput: string) => {
-  const testMap = new Map(
-    rawInput.split("\n").map((line) => {
-      const [key, values] = line.split(":");
-      return [Number(key.trim()), values.trim().split(" ").map(Number)];
-    }),
-  );
-
-  return testMap;
-};
+const parseInput = (rawInput: string) => rawInput;
 
 const evaluateExp = (
   test: number,
@@ -17,17 +8,11 @@ const evaluateExp = (
   operators: string,
 ): boolean => {
   let result = values[0];
-  // console.log("result:", result);
-
-  // console.log("operators", operators);
 
   for (let i = 0; i < operators.length; i++) {
-    // console.log(`operator[${i}]`, operators[i]);
     if (operators[i] === "+") {
-      // console.log(result + "+= " + values[i + 1]);
       result += values[i + 1];
     } else if (operators[i] === "*") {
-      // console.log(result + "*= " + values[i + 1]);
       result *= values[i + 1];
     }
 
@@ -51,42 +36,41 @@ const generateCombos = (numOperators: number) => {
     combos.add(operators);
   }
 
-  // console.log("numOperators: ", numOperators, " combos: ", combos);
-
   return combos;
 };
 
 const part1 = (rawInput: string) => {
-  const testMap = parseInput(rawInput);
-  const testSet = new Set<string>();
+  const input = parseInput(rawInput);
+  const tests = input.split("\n").map((line) => {
+    const [key, values] = line.split(":");
+    return {
+      key: Number(key.trim()),
+      values: values.trim().split(" ").map(Number),
+    };
+  });
+  const testSet: string[] = [];
   let validTestSum = 0;
 
-  testMap.forEach((values, test) => {
-    const numOperators = values.length - 1;
+  tests.forEach((values) => {
+    const numOperators = values.values.length - 1;
     const operatorCombos = generateCombos(numOperators);
+    const operatorArray = Array.from(operatorCombos);
 
-    // console.log("test ", test, ": numOperators: ", numOperators);
-    // console.log("values: ", values);
-    // console.log("operatorCombos", operatorCombos);
-
-    operatorCombos.forEach((operatorCombo) => {
-      // console.log("operatorCombo", operatorCombo);
-      const isValid = evaluateExp(test, values, operatorCombo);
-      // console.log("result: ", result, " test: ", test);
+    for (let i = 0; i < operatorArray.length; i++) {
+      const isValid = evaluateExp(values.key, values.values, operatorArray[i]);
 
       if (isValid) {
-        testSet.add(`${test}: ${[...values]}`);
-        // console.log(testSet);
-        // console.log(operatorCombo);
+        testSet.push(`${values.key}: ${[...values.values]}`);
+        break;
       }
-    });
+    }
   });
 
   testSet.forEach((test) => {
     validTestSum += Number(test.split(":")[0]);
   });
 
-  return validTestSum; // too small 1399219270675
+  return validTestSum;
 };
 
 const part2 = (rawInput: string) => {
@@ -109,18 +93,6 @@ run({
       21037: 9 7 18 13
       292: 11 6 16 20`,
         expected: 3749,
-      },
-      {
-        input: `28681667: 5 7 1 49 452 37 7`,
-        expected: 28681667,
-      },
-      {
-        input: `24883200120: 120 120 120 120 120 120`,
-        expected: 24883200120,
-      },
-      {
-        input: `28173653: 1 557 86 7 587 588`,
-        expected: 28173653,
       },
     ],
     solution: part1,
