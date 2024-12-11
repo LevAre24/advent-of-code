@@ -60,15 +60,63 @@ const part1 = (rawInput: string) => {
     nextRow = guardX + direction[1];
     nextCol = guardY + direction[0];
   }
-  // console.log(visited);
 
   return visited.size;
 };
 
 const part2 = (rawInput: string) => {
   const input = parseInput(rawInput);
+  let obstructedCount = 0;
 
-  return;
+  for (let i = 0; i < input.length; i++) {
+    for (let j = 0; j < input[i].length; j++) {
+      if (input[j][i] === "^" || input[j][i] === "#") {
+        continue;
+      }
+
+      const dupInput = structuredClone(input);
+      dupInput[j][i] = "#";
+
+      let [guardX, guardY] = guardPos(dupInput);
+
+      let dirIndex = 0;
+      let direction = directions[dirIndex];
+
+      let visitedDirections: Record<number, Set<string>> = {};
+      directions.forEach(
+        (direction, index) => (visitedDirections[index] = new Set()),
+      );
+      visitedDirections[dirIndex].add(`${guardY},${guardX}`);
+
+      let nextRow = guardX + direction[1];
+      let nextCol = guardY + direction[0];
+
+      while (
+        nextRow >= 0 &&
+        nextRow < dupInput[0].length &&
+        nextCol >= 0 &&
+        nextCol < dupInput.length
+      ) {
+        if (dupInput[nextCol][nextRow] === "#") {
+          dirIndex = (dirIndex + 1) % 4;
+          direction = directions[dirIndex];
+        } else {
+          guardX = nextRow;
+          guardY = nextCol;
+          if (visitedDirections[dirIndex].has(`${guardY},${guardX}`)) {
+            obstructedCount++;
+            break;
+          }
+          visitedDirections[dirIndex].add(`${guardY},${guardX}`);
+        }
+
+        nextRow = guardX + direction[1];
+        nextCol = guardY + direction[0];
+      }
+    }
+  }
+
+  return obstructedCount;
 };
 
 run({
@@ -109,5 +157,5 @@ run({
     solution: part2,
   },
   trimTestInputs: true,
-  onlyTests: true,
+  onlyTests: false,
 });
